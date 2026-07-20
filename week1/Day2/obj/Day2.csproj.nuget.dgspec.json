@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\Day1\\Day1.csproj": {}
+    "c:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\week1\\Day2\\Day2.csproj": {}
   },
   "projects": {
-    "C:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\Day1\\Day1.csproj": {
+    "c:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\week1\\Day2\\Day2.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\Day1\\Day1.csproj",
-        "projectName": "Day1",
-        "projectPath": "C:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\Day1\\Day1.csproj",
+        "projectUniqueName": "c:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\week1\\Day2\\Day2.csproj",
+        "projectName": "Day2",
+        "projectPath": "c:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\week1\\Day2\\Day2.csproj",
         "packagesPath": "C:\\Users\\yarae\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\Day1\\obj\\",
+        "outputPath": "c:\\Users\\yarae\\Desktop\\backend\\Backend-Internship\\week1\\Day2\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\yarae\\AppData\\Roaming\\NuGet\\NuGet.Config"
