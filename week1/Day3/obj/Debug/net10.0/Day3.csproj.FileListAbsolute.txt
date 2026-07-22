@@ -1,0 +1,15 @@
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\bin\Debug\net10.0\Day3.exe
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\bin\Debug\net10.0\Day3.deps.json
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\bin\Debug\net10.0\Day3.runtimeconfig.json
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\bin\Debug\net10.0\Day3.dll
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\bin\Debug\net10.0\Day3.pdb
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.AssemblyInfoInputs.cache
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.AssemblyInfo.cs
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.csproj.CoreCompileInputs.cache
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.sourcelink.json
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.dll
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\refint\Day3.dll
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.pdb
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\Day3.genruntimeconfig.cache
+C:\Users\yarae\Desktop\backend\Backend-Internship\week1\Day3\obj\Debug\net10.0\ref\Day3.dll
