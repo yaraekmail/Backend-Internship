@@ -1,0 +1,15 @@
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\bin\Debug\net10.0\AlMandoobStoneManagement.exe
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\bin\Debug\net10.0\AlMandoobStoneManagement.deps.json
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\bin\Debug\net10.0\AlMandoobStoneManagement.runtimeconfig.json
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\bin\Debug\net10.0\AlMandoobStoneManagement.dll
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\bin\Debug\net10.0\AlMandoobStoneManagement.pdb
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.AssemblyInfoInputs.cache
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.AssemblyInfo.cs
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.csproj.CoreCompileInputs.cache
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.sourcelink.json
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.dll
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\refint\AlMandoobStoneManagement.dll
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.pdb
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\AlMandoobStoneManagement.genruntimeconfig.cache
+C:\Users\yarae\Desktop\backend\Backend-Internship\Week2\AlMandoobStoneManagement\obj\Debug\net10.0\ref\AlMandoobStoneManagement.dll
