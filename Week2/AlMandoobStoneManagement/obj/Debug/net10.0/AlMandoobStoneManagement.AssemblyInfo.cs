@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AlMandoobStoneManagement")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1a85108cdc082fc764b9daa7a29ea3fbb3be6707")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d3e0ddc76c26bb12f75439bae67fad1f969830d")]
 [assembly: System.Reflection.AssemblyProductAttribute("AlMandoobStoneManagement")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AlMandoobStoneManagement")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
