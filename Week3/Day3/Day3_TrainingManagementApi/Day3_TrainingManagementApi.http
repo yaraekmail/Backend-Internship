@@ -1,0 +1,6 @@
+@Day3_TrainingManagementApi_HostAddress = http://localhost:5001
+
+GET {{Day3_TrainingManagementApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
