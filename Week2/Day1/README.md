@@ -1,214 +1,117 @@
-# Day 1 - Generics & Generic Repository Implementation
 
-# Project: AlMandoob Stone Management System
+
+# Day 1 — Generics & Advanced Collections
+
+## Week 2
+
+**Project:** AlMandoob Stone Management System
+**Technology:** C# / .NET 10
+
+---
 
 ## Overview
 
-During Day 1, I started building the foundation of **AlMandoob Stone Management System**, a real-world management system designed for a stone and marble business.
+Day 1 focused on **Generics & Advanced Collections** in C#.
 
-Instead of applying the concepts on simple training classes, the implementation was done using the actual project domain to simulate a real software development environment.
-
-The main goal of this day was to understand how to create reusable and scalable code using:
-
-- Generics
-- Generic Classes
-- Generic Repository Pattern
-- Generic Constraints
-- Collections Interfaces
-- Lambda Expressions
-- Predicate Functions
-- OOP concepts integration
+The practical work was implemented using the **AlMandoob Stone Management System** domain. The main task was to build a reusable **Generic Repository** that can work with different entity types while maintaining type safety and controlling how the collection is accessed.
 
 ---
 
-# Project Domain Design
+## Learning Objectives
 
-Before implementing the repository, the project structure was designed based on real entities that exist in a stone management system.
+During this day, I practiced:
 
-The system contains different entities such as:
-
-## Person (Base Entity)
-
-A base abstract class that contains common properties shared between people in the system.
-
-Example:
-
-```csharp
-public abstract class Person
-{
-    public int Id { get; set; }
-
-    public string Name { get; set; } = string.Empty;
-}
-```
-
-The purpose of creating `Person` as an abstract class is to avoid repeating common properties in different classes.
+* Understanding why Generics are used.
+* Creating a Generic Class.
+* Applying Generic Constraints.
+* Working with different collection interfaces.
+* Using `IReadOnlyList<T>` to prevent direct modification of returned data.
+* Building and testing a reusable Generic Repository.
 
 ---
 
-## Employee Entity
+## Project Domain
 
-Represents employees working in the company.
+The project contains a `Models` folder with the domain entities used by the system.
 
-Employee inherits from Person using inheritance:
+The current domain models include:
 
-```csharp
-public class Employee : Person
-{
-    public string JobTitle { get; set; } = string.Empty;
-}
-```
+* `Person`
+* `Employee`
+* `Customer`
+* `Order`
+* `Project`
+* `Service`
+* `Stone`
+* `StoneType`
+* `Supplier`
 
-Employee contains:
-
-- Id
-- Name
-- Job Title
-
-Examples of employees:
-
-- Manager
-- Worker
-- Sales Employee
-- Production Employee
+These models provide different entity types that can be used with the Generic Repository.
 
 ---
 
-## Customer Entity
+## 1. Why Generics?
 
-Represents customers who deal with the company.
+Generics allow the same code to work with different types while maintaining type safety.
 
-Customer also inherits from Person:
+Instead of creating separate implementations for different entity types, one generic implementation can be reused.
 
-```csharp
-public class Customer : Person
-{
-
-}
-```
-
-This allows sharing common properties while keeping the design organized.
-
----
-
-# Project Structure
-
-The project was organized following a clean structure:
-
-```
-AlMandoobStoneManagement
-
-│ Program.cs
-
-├── Models
-│
-│   ├── Person.cs
-│   ├── Employee.cs
-│   └── Customer.cs
-│
-
-└── Repositories
-
-    └── Repository.cs
-```
-
-The separation between Models and Repositories makes the project easier to maintain and extend.
-
----
-
-# Implementing Generic Repository
-
-## What is Generic Repository?
-
-A repository is a layer responsible for managing data operations.
-
-Instead of creating different repositories:
-
-```
-EmployeeRepository
-CustomerRepository
-StoneTypeRepository
-```
-
-A generic repository allows creating one reusable class:
-
-```csharp
-Repository<T>
-```
-
-that can work with different entity types.
-
-Example:
+For example:
 
 ```csharp
 Repository<Employee>
-```
-
-and:
-
-```csharp
 Repository<Customer>
 ```
 
-using the same implementation.
+Both use the same `Repository<T>` implementation while keeping the entity type defined at compile time.
 
 ---
 
-# Creating Generic Class
+## 2. Generic Repository
 
-Implemented:
-
-```csharp
-public class Repository<T>
-```
-
-The type parameter `T` allows the repository to work with any entity.
-
-The repository stores objects using:
-
-```csharp
-private List<T> _items = new List<T>();
-```
-
----
-
-# Applying Generic Constraint
-
-Added:
-
-```csharp
-where T : class
-```
-
-The constraint ensures that the repository only accepts reference types.
-
-Reason:
-
-The repository is designed to store entity objects such as:
-
-- Employee
-- Customer
-- StoneType
-
-and should not be used with value types like:
-
-- int
-- double
-- bool
-
-Implementation:
+A generic repository was implemented as:
 
 ```csharp
 public class Repository<T> where T : class
 ```
 
+The repository internally stores its items using:
+
+```csharp
+private List<T> _items = new List<T>();
+```
+
+This allows the repository to manage different entity types without duplicating the repository code.
+
 ---
 
-# Repository Operations
+## 3. Generic Constraint
 
-## 1. Add Method
+The repository uses:
 
-Implemented adding new objects to the repository.
+```csharp
+where T : class
+```
+
+This constraint ensures that `T` must be a reference type.
+
+The repository is intended to work with entity objects such as:
+
+* `Employee`
+* `Customer`
+* `StoneType`
+
+rather than value types such as `int`, `double`, or `bool`.
+
+The constraint also allows the generic repository to clearly define the types it is designed to work with. ([Microsoft Learn][2])
+
+---
+
+## 4. Repository Methods
+
+### Add
+
+The `Add` method adds an item to the internal list:
 
 ```csharp
 public void Add(T item)
@@ -217,44 +120,27 @@ public void Add(T item)
 }
 ```
 
-Example:
+The same method can therefore be used with different entity types.
+
+For example, employees were added using:
 
 ```csharp
-employees.Add(new Employee
-{
-    Id = 1,
-    Name = "Ahmad",
-    JobTitle = "Manager"
-});
+var employees = new Repository<Employee>();
+```
+
+and customers were added using:
+
+```csharp
+var customers = new Repository<Customer>();
 ```
 
 ---
 
-# 2. GetAll Method
+### GetAll
 
-The first implementation returned:
+The repository initially used `List<T>` as the return type.
 
-```csharp
-List<T>
-```
-
-However, returning the original list allows external code to modify internal data.
-
-Example problem:
-
-```csharp
-employees.GetAll().Add(new Employee());
-```
-
-This directly changes repository data.
-
-To solve this problem, the return type was changed to:
-
-```csharp
-IReadOnlyList<T>
-```
-
-Implementation:
+It was changed to:
 
 ```csharp
 public IReadOnlyList<T> GetAll()
@@ -263,155 +149,156 @@ public IReadOnlyList<T> GetAll()
 }
 ```
 
-Benefits:
+Using `IReadOnlyList<T>` allows the caller to read the collection without directly modifying the repository's internal list.
 
-- Users can read the data.
-- Users cannot add or remove items directly.
-- Protects repository data.
+This also provides indexed access and a known count while preventing collection modification through the returned interface. ([Microsoft Learn][3])
 
 ---
 
-# 3. Find Method Using Predicate
+### Find
 
-Implemented a dynamic filtering method:
+A `Find` method was implemented using:
 
 ```csharp
 public List<T> Find(Func<T, bool> condition)
 ```
 
-The method receives a condition using:
+The method receives a condition and checks each item in the repository.
 
-```csharp
-Func<T,bool>
-```
-
-This allows passing different search conditions.
-
-Example:
-
-Find employees who are managers:
+For example:
 
 ```csharp
 employees.Find(employee => employee.JobTitle == "Manager");
 ```
 
-The repository checks every item and returns only matching results.
+The lambda expression provides the condition used to find matching employees.
 
 ---
 
-# Testing Generic Repository
+## 5. Choosing Collection Interfaces
 
-The repository was tested using multiple entity types.
+The implementation also covered the difference between collection interfaces.
 
-## Employee Repository
+### `IEnumerable<T>`
+
+Used when only iteration over a sequence is required.
+
+### `IReadOnlyList<T>`
+
+Used when the caller needs to read the collection and access items by index without modifying it.
+
+### `IList<T>`
+
+Used when the caller genuinely needs to modify the collection.
+
+The main principle is to return the **least permissive interface that satisfies the caller's needs**.
+
+---
+
+## 6. Testing the Repository
+
+The Generic Repository was tested with two different domain model types.
+
+### Employee Repository
 
 ```csharp
-Repository<Employee>
+var employees = new Repository<Employee>();
 ```
 
-Added employees and retrieved them successfully.
+Two employees were added:
 
-Example output:
+* Ahmad — Manager
+* Ali — Worker
 
-```
-Ahmad
-Manager
-
-Ali
-Worker
-```
+The employees were then retrieved using `GetAll()`.
 
 ---
 
-## Customer Repository
+### Customer Repository
 
 ```csharp
-Repository<Customer>
+var customers = new Repository<Customer>();
 ```
 
-The same repository was reused with Customer without creating a new repository class.
+Two customers were added:
 
-This confirms that Generics provide reusable and flexible code.
+* Omar
+* Khaled
+
+The same `Repository<T>` implementation was reused for `Customer` without creating a separate customer repository.
+
+This demonstrates the reusability of the Generic Repository.
 
 ---
 
-# Concepts Applied From OOP
+## 7. Project Structure
 
-During this implementation, previous OOP concepts were integrated:
+The Day 1 project contains:
 
-## Encapsulation
-
-The list is private:
-
-```csharp
-private List<T> _items;
+```text
+Day1
+│
+├── Day1.csproj
+├── Program.cs
+├── README.md
+├── Repository.cs
+│
+└── Models
+    ├── Customer.cs
+    ├── Employee.cs
+    ├── order.cs
+    ├── Person.cs
+    ├── Project.cs
+    ├── Service.cs
+    ├── Stone.cs
+    ├── StoneType.cs
+    └── Supplier.cs
 ```
 
-External code cannot access it directly.
+The `Models` folder contains the project's domain entities, while `Repository.cs` contains the reusable Generic Repository.
 
 ---
 
-## Inheritance
+## 8. Hands-On Lab
 
-Implemented:
+The required Day 1 tasks were completed:
 
-```
-Person
-   |
-   ├── Employee
-   |
-   └── Customer
-```
-
-Shared properties were placed in the parent class.
-
----
-
-## Abstraction
-
-Used:
-
-```csharp
-abstract class Person
-```
-
-to represent a common concept without creating direct objects from it.
+* [x] Created a generic `Repository<T>` class.
+* [x] Implemented `Add`.
+* [x] Implemented `GetAll`.
+* [x] Implemented `Find` using a predicate.
+* [x] Applied the `where T : class` constraint.
+* [x] Tested the repository with two different domain model types.
+* [x] Changed `GetAll()` to return `IReadOnlyList<T>`.
+* [x] Verified that the returned collection cannot be directly modified through the read-only interface.
 
 ---
 
-# Skills Practiced Today
+## Skills Practiced
 
-During Day 1, I practiced:
-
-✅ Creating a real C# project structure  
-✅ Designing domain entities  
-✅ Applying inheritance and abstraction  
-✅ Creating Generic Classes  
-✅ Building Generic Repository Pattern  
-✅ Using Collections (`List<T>`)  
-✅ Using `Func<T,bool>` and Lambda Expressions  
-✅ Applying Generic Constraints  
-✅ Protecting data using `IReadOnlyList<T>`  
-✅ Testing reusable code with multiple entities  
+* C# Generics
+* Generic Classes
+* Generic Constraints
+* Generic Repository Pattern
+* `List<T>`
+* `IEnumerable<T>`
+* `IReadOnlyList<T>`
+* `IList<T>`
+* `Func<T, bool>`
+* Lambda Expressions
+* Type Safety
+* Reusable Code
 
 ---
 
-# Day 1 Outcome
+## Day 1 Outcome
 
-At the end of Day 1, the foundation of **AlMandoob Stone Management System** was created.
+By the end of Day 1, a reusable **Generic Repository** was implemented for the **AlMandoob Stone Management System**.
 
-A reusable Generic Repository was implemented successfully and connected with real project entities such as:
+The repository can be reused with different domain entities such as `Employee` and `Customer`, while `IReadOnlyList<T>` is used to prevent direct modification of the repository's returned collection.
 
-- Employee
-- Customer
+This completed the Day 1 practical work on **Generics, Generic Constraints, and Collection Interfaces**.
 
-This foundation will allow adding future entities and features such as:
-
-- Stone Types
-- Orders
-- Projects
-- Customers Management
-- Export Operations
-- Production Tracking
-
-without rewriting the same data management logic.
+[1]: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/generics%20?utm_source=chatgpt.com "Generic types and methods - C# | Microsoft Learn"
+[2]: https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/generics/constraints-on-type-parameters?utm_source=chatgpt.com "Constraints on type parameters - C# | Microsoft Learn"
+[3]: https://learn.microsoft.com/ko-kr/dotnet/api/system.collections.generic.ireadonlylist-1?view=netframework-4.8-pp&utm_source=chatgpt.com "IReadOnlyList<T> Interface (System.Collections.Generic) | Microsoft Learn"
