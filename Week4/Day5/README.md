@@ -1,230 +1,320 @@
-Day 5 — Securing the API
-Overview
+# Week 4 — Day 5 | API Security & Hardening
 
-Day 5 focused on hardening the Training Management API by implementing the required security configurations and verifying them through practical testing.
+## ASP.NET Core Web API — Rate Limiting, CORS, HTTPS & SQL Injection Prevention
 
-During this day, we completed the following tasks:
+This project extends the **Week 4 authentication, authorization, and validation work** by adding additional security configurations to harden the Training Management API.
 
-Configured rate limiting with a stricter policy for the login endpoint.
-Configured a named CORS policy with a specific allowed origin.
-Enabled HTTPS redirection and HSTS.
-Reviewed the codebase for raw SQL queries and confirmed that no matching raw SQL usage exists.
-Tested the implemented security configurations using Postman where applicable.
-Task 1 — Rate Limiting
-Implementation
+The main focus of Day 5 was implementing **rate limiting, CORS, HTTPS redirection, HSTS, and reviewing the codebase for raw SQL usage**.
 
-We used ASP.NET Core's built-in rate limiting functionality and configured two named policies in Program.cs:
+---
 
-LoginPolicy
+## 🎯 Lab Objectives
 
-The login endpoint was given a stricter limit:
+* Configure rate limiting for API endpoints.
+* Apply a stricter rate limit to the login endpoint.
+* Configure a named CORS policy.
+* Enable HTTPS redirection and HSTS.
+* Review the codebase for raw SQL queries.
+* Test the implemented security configurations using Postman.
 
+---
+
+## 🛠 Technologies
+
+| Technology                | Purpose                  |
+| ------------------------- | ------------------------ |
+| C#                        | Programming language     |
+| .NET 10                   | Target framework         |
+| ASP.NET Core Web API      | API development          |
+| ASP.NET Core Identity     | User and role management |
+| JWT Bearer Authentication | Authentication           |
+| Entity Framework Core     | ORM and database access  |
+| SQL Server                | Database                 |
+| Postman                   | API testing              |
+
+---
+
+# 🛡️ API Security Flow
+
+The API now includes additional security layers around the existing authentication and authorization system:
+
+```text
+Client Request
+      ↓
+HTTPS / HSTS
+      ↓
+CORS
+      ↓
+Rate Limiting
+      ↓
+JWT Authentication
+      ↓
+Authorization
+      ↓
+Controller
+      ↓
+EF Core
+      ↓
+SQL Server
+```
+
+---
+
+# 🚦 Rate Limiting
+
+ASP.NET Core's built-in rate limiting was configured in:
+
+[Program.cs](./Program.cs)
+
+Two policies were created:
+
+### LoginPolicy
+
+The login endpoint allows:
+
+```text
 5 requests per minute
-options.AddFixedWindowLimiter("LoginPolicy", limiterOptions =>
-{
-    limiterOptions.PermitLimit = 5;
-    limiterOptions.Window = TimeSpan.FromMinutes(1);
-    limiterOptions.QueueLimit = 0;
-});
+```
 
-The policy was applied to the login endpoint in Controllers/AuthController.cs:
+and returns:
 
-[EnableRateLimiting("LoginPolicy")]
-[HttpPost("login")]
-public async Task<IActionResult> Login(LoginRequest request)
-GeneralPolicy
-
-A less restrictive policy was configured for general endpoints:
-
-100 requests per minute
-options.AddFixedWindowLimiter("GeneralPolicy", limiterOptions =>
-{
-    limiterOptions.PermitLimit = 100;
-    limiterOptions.Window = TimeSpan.FromMinutes(1);
-    limiterOptions.QueueLimit = 0;
-});
-
-This policy was applied to the participant GetById endpoint in Controllers/ParticipantsController.cs:
-
-[EnableRateLimiting("GeneralPolicy")]
-[HttpGet("{id}")]
-public async Task<IActionResult> GetById(int id)
-
-We also configured the application to return 429 Too Many Requests when a rate limit is exceeded:
-
-options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-Testing
-
-We tested both rate-limiting policies using Postman.
-
-For the login endpoint, repeated requests were sent to:
-
-POST http://localhost:5030/api/auth/login
-
-After exceeding the configured limit, the API returned:
-
+```text
 429 Too Many Requests
+```
 
-The general policy was also applied to:
+when the limit is exceeded.
 
-GET http://localhost:5030/api/participants/1
-Related Files
-Program.cs
-Controllers/AuthController.cs
-Controllers/ParticipantsController.cs
-Task 2 — CORS
-Implementation
+The policy is applied in:
 
-We configured a named CORS policy in Program.cs:
+[AuthController.cs](./Controllers/AuthController.cs)
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("https://myapp.com")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
+### GeneralPolicy
 
-The policy is named:
+General API requests allow:
 
+```text
+100 requests per minute
+```
+
+The policy is applied to the Participant `GetById` endpoint in:
+
+[ParticipantsController.cs](./Controllers/ParticipantsController.cs)
+
+---
+
+# 🌐 CORS
+
+A named CORS policy called:
+
+```text
 AllowFrontend
+```
 
-and the configured allowed origin is:
+was configured in:
 
+[Program.cs](./Program.cs)
+
+The configured frontend origin is:
+
+```text
 https://myapp.com
+```
 
-The policy was then enabled in the middleware pipeline:
+The policy allows the frontend to send requests using different HTTP methods and headers.
 
-app.UseCors("AllowFrontend");
-Testing
+---
 
-We tested the CORS configuration by sending requests with different origins.
+# 🔒 HTTPS & HSTS
 
-The configured origin:
+HTTPS redirection and HSTS were enabled in:
 
-https://myapp.com
+[Program.cs](./Program.cs)
 
-was used as the allowed origin.
+The local HTTP and HTTPS application URLs are configured in:
 
-We also tested a different origin that was not included in the configured policy.
+[launchSettings.json](./Properties/launchSettings.json)
 
-CORS enforcement is performed by browsers. Postman was used to send requests and inspect the resulting request/response behavior.
+This ensures that HTTP requests are redirected to HTTPS and that browsers are instructed to prefer HTTPS.
 
-Related File
-Program.cs
-Task 3 — HTTPS Redirection & HSTS
-Implementation
+---
 
-We enabled HSTS and HTTPS redirection in the middleware pipeline in Program.cs:
+# 🛡️ SQL Injection Prevention
 
-app.UseHsts();
+The C# codebase was reviewed for raw SQL usage using:
 
-
-app.UseHttpsRedirection();
-
-The local application URLs are configured in Properties/launchSettings.json:
-
-http://localhost:5030
-https://localhost:7135
-
-This completed the HTTPS and HSTS configuration required by the Day 5 task.
-
-Related Files
-Program.cs
-Properties/launchSettings.json
-Task 4 — SQL Injection Prevention Review
-Implementation
-
-For this task, we reviewed the C# codebase to check whether raw SQL queries were being used.
-
-We searched all C# files using:
-
-Get-ChildItem -Recurse -Filter *.cs | Select-String -Pattern "FromSql|ExecuteSql|SqlQuery"
-
-The command returned no results.
-
-Therefore, no matching usage of:
-
+```text
 FromSql
 ExecuteSql
 SqlQuery
+```
 
-was found in the project.
+No matching raw SQL usage was found.
 
-The database operations we implemented use Entity Framework Core and LINQ, for example in Controllers/ParticipantsController.cs:
+The API continues to use **Entity Framework Core and LINQ** for database operations.
 
+For example:
+
+```csharp
 var participant = await _context.Participants
     .FirstOrDefaultAsync(p => p.Id == id);
+```
 
-No raw SQL query was added as part of Day 5.
+This keeps database access within the EF Core abstraction instead of manually constructing SQL queries.
 
-Final Day 5 Implementation
+---
 
-The main security-related changes are located in:
+# 🧪 API Testing
 
-Program.cs
+The security configurations were tested using the Day 5 Postman collection:
 
-Contains:
+[Week 4 - Day 5 - API Hardening.postman_collection.json](./postman/Week%204%20-%20Day5%20-%20API%20Hardening.postman_collection.json)
 
-Rate limiting policies
-CORS policy
-HTTPS redirection
-HSTS
-Rate limiter middleware
-CORS middleware
-Controllers/AuthController.cs
+The tests covered:
 
-Contains:
+| Security Feature      | Result                                            |
+| --------------------- | ------------------------------------------------- |
+| Login rate limiting   | `429 Too Many Requests` after exceeding the limit |
+| General rate limiting | Policy configured                                 |
+| CORS                  | Allowed and disallowed origins tested             |
+| HTTPS                 | Configured                                        |
+| HSTS                  | Configured                                        |
+| Raw SQL review        | No matching raw SQL usage found                   |
 
-Login endpoint
-LoginPolicy rate limiting
-Controllers/ParticipantsController.cs
+---
 
-Contains:
+# 🗂️ Project Structure
 
-Protected participant endpoints
-GeneralPolicy rate limiting
-Existing authorization rules
-Properties/launchSettings.json
+```text
+Day5/
+│
+├── Controllers/
+│   ├── AuthController.cs
+│   └── ParticipantsController.cs
+│
+├── Data/
+│   └── TrainingManagementDbContext.cs
+│
+├── Models/
+│   ├── CreateParticipantRequest.cs
+│   ├── UpdateParticipantRequest.cs
+│   ├── LoginRequest.cs
+│   ├── RegisterRequest.cs
+│   └── ...
+│
+├── Validators/
+│   ├── CreateParticipantValidator.cs
+│   └── UpdateParticipantValidator.cs
+│
+├── Migrations/
+│   ├── InitialCreate
+│   ├── AddIdentity
+│   └── TrainingManagementDbContextModelSnapshot.cs
+│
+├── postman/
+│   └── Week 4 - Day5 - API Hardening.postman_collection.json
+│
+├── Documentation/
+│   └── Week4Day_5.docx
+│
+├── Properties/
+│   └── launchSettings.json
+│
+├── Program.cs
+├── Day5.csproj
+└── README.md
+```
 
-Contains:
+> `bin/` and `obj/` are build/generated folders and are not part of the application source implementation.
 
-Local HTTP URL
-Local HTTPS URL
-Testing Summary
+---
 
-The Day 5 implementation was verified through the following tests:
+# 📌 Important Files
 
-Task	Test	Result
-Rate Limiting	Login endpoint	429 Too Many Requests after exceeding the limit
-Rate Limiting	General endpoint	General rate-limit policy configured
-CORS	Allowed origin	Tested
-CORS	Disallowed origin	Tested
-HTTPS	HTTPS configuration	Configured
-HSTS	HSTS middleware	Configured
-SQL Injection	Raw SQL search	No matching raw SQL usage found
-Day 5 Checklist
- Configure LoginPolicy
- Configure GeneralPolicy
- Apply stricter rate limiting to login
- Apply general rate limiting to a general endpoint
- Configure 429 Too Many Requests
- Test rate limiting using Postman
- Configure named AllowFrontend CORS policy
- Configure the allowed origin
- Test allowed and disallowed origins
- Enable HTTPS redirection
- Enable HSTS
- Review the codebase for raw SQL
- Confirm no matching raw SQL usage was found
-Day 5 Result
+### Security Configuration
 
-By the end of Day 5, the Training Management API had the required hardening configurations implemented:
+* [Program.cs](./Program.cs)
+* [AuthController.cs](./Controllers/AuthController.cs)
+* [ParticipantsController.cs](./Controllers/ParticipantsController.cs)
 
-Rate limiting with different limits for login and general endpoints.
-A named CORS policy with a specific allowed origin.
-HTTPS redirection.
-HSTS.
-A codebase review confirming that no matching raw SQL usage was present.
+### Configuration
+
+* [launchSettings.json](./Properties/launchSettings.json)
+* [Day5.csproj](./Day5.csproj)
+
+### Database
+
+* [TrainingManagementDbContext.cs](./Data/TrainingManagementDbContext.cs)
+* [Migrations](./Migrations/)
+
+### Testing & Documentation
+
+* [Postman Collection](./postman/Week%204%20-%20Day5%20-%20API%20Hardening.postman_collection.json)
+* [Week 4 Day 5 Documentation](./Documentation/Week4Day_5.docx)
+
+---
+
+# ▶️ Run the Project
+
+From the Day 5 project directory:
+
+```powershell
+dotnet restore
+dotnet build
+dotnet run
+```
+
+---
+
+# 🧠 Main Concepts Practiced
+
+* Rate Limiting
+* Fixed Window Rate Limiting
+* CORS
+* HTTPS Redirection
+* HSTS
+* SQL Injection Prevention
+* Entity Framework Core
+* ASP.NET Core Identity
+* JWT Authentication
+* Postman API Testing
+
+---
+
+# 🎯 Final Result
+
+By the end of Day 5, the Training Management API was extended with additional **security hardening measures**.
+
+The overall API flow became:
+
+```text
+Identity
+   ↓
+JWT Authentication
+   ↓
+Authorization
+   ↓
+FluentValidation
+   ↓
+Security Hardening
+   ├── Rate Limiting
+   ├── CORS
+   ├── HTTPS
+   └── HSTS
+   ↓
+Controller
+   ↓
+EF Core
+   ↓
+SQL Server
+```
+
+The API therefore includes authentication, authorization, input validation, and additional security protections against common API-level risks.
+
+### 🔗 Quick Links
+
+[Program.cs](./Program.cs) ·
+[AuthController.cs](./Controllers/AuthController.cs) ·
+[ParticipantsController.cs](./Controllers/ParticipantsController.cs) ·
+[launchSettings.json](./Properties/launchSettings.json) ·
+[Postman Collection](./postman/Week%204%20-%20Day5%20-%20API%20Hardening.postman_collection.json) ·
+[Documentation](./Documentation/Week4Day_5.docx)
