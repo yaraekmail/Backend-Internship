@@ -142,3 +142,7 @@ using (var scope = app.Services.CreateScope())
     await DbSeeder.SeedAsync(context);
 }
 app.Run();
+// Makes the Program class accessible to the integration test project.
+public partial class Program
+{
+}
