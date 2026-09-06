@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-
+// Provides access to the global exception middleware.
+using CardiacPatientMonitoring.Api.Middleware;
 using CardiacPatientMonitoring.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -123,11 +124,13 @@ if (app.Environment.IsDevelopment())
 
 // Redirects HTTP requests to HTTPS.
 app.UseHttpsRedirection();
+// Handles unexpected exceptions before they reach the client.
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
-// Enables authentication before authorization.
+// Handles JWT authentication.
 app.UseAuthentication();
 
-// Enables authorization.
+// Handles authorization and role checks.
 app.UseAuthorization();
 
 // Maps controller endpoints.
@@ -141,6 +144,12 @@ using (var scope = app.Services.CreateScope())
     // Seed initial patients and vital-sign data.
     await DbSeeder.SeedAsync(context);
 }
+// Test endpoint that deliberately throws an exception.
+// This is temporary and will be removed after testing.
+app.MapGet("/api/test-error", () =>
+{
+    throw new Exception("This is a test exception.");
+});
 app.Run();
 // Makes the Program class accessible to the integration test project.
 public partial class Program
