@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/project/" />
+  <Folder Name="/project/CardiacPatientMonitoring/">
+    <Project Path="project/CardiacPatientMonitoring/CardiacPatientMonitoring.Api/CardiacPatientMonitoring.Api.csproj" />
+  </Folder>
+  <Folder Name="/Week5/" />
+  <Folder Name="/Week5/Day1/">
+    <Project Path="Week5/Day1/CardiacPatientMonitoring.Tests/CardiacPatientMonitoring.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Week5/Day2/">
+    <Project Path="Week5/Day2/CardiacPatientMonitoring.Tests/CardiacPatientMonitoring.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Week5/Day3/">
+    <Project Path="Week5/Day3/CardiacPatientMonitoring.Tests/CardiacPatientMonitoring.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Week5/Day4/">
+    <Project Path="Week5/Day4/CardiacPatientMonitoring.Tests/CardiacPatientMonitoring.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Week5/Day5/">
+    <Project Path="Week5/Day5/CardiacPatientMonitoring.Tests/CardiacPatientMonitoring.Tests.csproj" />
+  </Folder>
+</Solution>
