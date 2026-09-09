@@ -30,7 +30,14 @@ public class CardiacPatientMonitoringDbContext : IdentityDbContext<IdentityUser>
 
     // Represents the Allergies table in the database.
     public DbSet<Allergy> Allergies { get; set; }
+// Represents the medication catalog table.
+public DbSet<MedicationCatalogItem> MedicationCatalogItems { get; set; }
 
+// Represents the medication orders table.
+public DbSet<MedicationOrder> MedicationOrders { get; set; }
+
+// Represents the medication order items table.
+public DbSet<MedicationOrderItem> MedicationOrderItems { get; set; }
     // Configures entity relationships and database behavior.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -79,5 +86,49 @@ public class CardiacPatientMonitoringDbContext : IdentityDbContext<IdentityUser>
             .WithMany(p => p.Allergies)
             .HasForeignKey(a => a.PatientId)
             .OnDelete(DeleteBehavior.Cascade);
+       // Configures the one-to-many relationship between Patient and MedicationOrder.
+modelBuilder.Entity<MedicationOrder>()
+    .HasOne(o => o.Patient)
+    .WithMany()
+    .HasForeignKey(o => o.PatientId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+// Configures the one-to-many relationship between MedicationOrder and MedicationOrderItem.
+modelBuilder.Entity<MedicationOrderItem>()
+    .HasOne(i => i.MedicationOrder)
+    .WithMany(o => o.Items)
+    .HasForeignKey(i => i.MedicationOrderId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+// Configures the relationship between MedicationCatalogItem and MedicationOrderItem.
+modelBuilder.Entity<MedicationOrderItem>()
+    .HasOne(i => i.MedicationCatalogItem)
+    .WithMany()
+    .HasForeignKey(i => i.MedicationCatalogItemId)
+    .OnDelete(DeleteBehavior.Restrict);     
+// Configures the precision for medication catalog prices.
+modelBuilder.Entity<MedicationCatalogItem>()
+    .Property(m => m.UnitPrice)
+    .HasPrecision(18, 2);
+
+// Configures the precision for order item unit prices.
+modelBuilder.Entity<MedicationOrderItem>()
+    .Property(i => i.UnitPrice)
+    .HasPrecision(18, 2);
+
+// Configures the precision for order item line totals.
+modelBuilder.Entity<MedicationOrderItem>()
+    .Property(i => i.LineTotal)
+    .HasPrecision(18, 2);
+
+// Configures the precision for medication order totals.
+modelBuilder.Entity<MedicationOrder>()
+    .Property(o => o.TotalAmount)
+    .HasPrecision(18, 2);
+
+    // Configures RowVersion for optimistic concurrency checking.
+modelBuilder.Entity<MedicationCatalogItem>()
+    .Property(m => m.RowVersion)
+    .IsRowVersion();
     }
 }

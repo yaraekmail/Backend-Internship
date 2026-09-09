@@ -8,9 +8,8 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(CardiacPatientMonitoringDbContext context)
     {
-        // Prevent duplicate seed data if patients already exist.
-        if (await context.Patients.AnyAsync())
-            return;
+        // Check whether the original patient data already exists.
+        var patientsExist = await context.Patients.AnyAsync();
 
         // Fixed patient IDs so related records can reference the correct patient.
         var patient1Id = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -88,8 +87,6 @@ public static class DbSeeder
                 State = "CO"
             }
         };
-
-        await context.Patients.AddRangeAsync(patients);
 
         // Sample vital-sign measurements.
         var vitalSigns = new List<VitalSign>
@@ -440,14 +437,47 @@ public static class DbSeeder
             }
         };
 
-        // Add all related data to the database.
-        await context.VitalSigns.AddRangeAsync(vitalSigns);
-        await context.Medications.AddRangeAsync(medications);
-        await context.Appointments.AddRangeAsync(appointments);
-        await context.MedicalConditions.AddRangeAsync(medicalConditions);
-        await context.Allergies.AddRangeAsync(allergies);
+        // Sample medication catalog items for order and stock testing.
+        var medicationCatalogItems = new List<MedicationCatalogItem>
+        {
+            new MedicationCatalogItem
+            {
+                Name = "Aspirin 81 mg",
+                UnitPrice = 10.00m,
+                StockQuantity = 10
+            },
+            new MedicationCatalogItem
+            {
+                Name = "Atorvastatin 20 mg",
+                UnitPrice = 25.50m,
+                StockQuantity = 5
+            },
+            new MedicationCatalogItem
+            {
+                Name = "Metoprolol 25 mg",
+                UnitPrice = 7.75m,
+                StockQuantity = 2
+            }
+        };
 
-        // Save all seeded data.
+        // Seed the original cardiac patient data only when patients do not already exist.
+        if (!patientsExist)
+        {
+            await context.Patients.AddRangeAsync(patients);
+            await context.VitalSigns.AddRangeAsync(vitalSigns);
+            await context.Medications.AddRangeAsync(medications);
+            await context.Appointments.AddRangeAsync(appointments);
+            await context.MedicalConditions.AddRangeAsync(medicalConditions);
+            await context.Allergies.AddRangeAsync(allergies);
+        }
+
+        // Add medication catalog items only when the catalog is empty.
+        if (!await context.MedicationCatalogItems.AnyAsync())
+        {
+            await context.MedicationCatalogItems.AddRangeAsync(medicationCatalogItems);
+        }
+
+        // Save the seeded data.
         await context.SaveChangesAsync();
     }
 }

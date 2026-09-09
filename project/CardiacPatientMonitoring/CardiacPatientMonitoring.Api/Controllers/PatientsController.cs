@@ -34,27 +34,84 @@ public class PatientsController : ControllerBase
 
     // Returns all patients.
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PatientResponse>>> GetPatients()
+public async Task<ActionResult<IEnumerable<PatientResponse>>> GetPatients(
+    int page = 1,
+    int pageSize = 10,
+    string? sort = null,
+    string? gender = null,
+    string? city = null)
     {
-        var patients = await _context.Patients
-            .AsNoTracking()
-            .Select(patient => new PatientResponse
-            {
-                Id = patient.Id,
-                FirstName = patient.FirstName,
-                LastName = patient.LastName,
-                DateOfBirth = patient.DateOfBirth,
-                Gender = patient.Gender,
-                Phone = patient.Phone,
-                Email = patient.Email,
-                Address = patient.Address,
-                City = patient.City,
-                State = patient.State
-            })
-            .ToListAsync();
+        // Validate pagination values.
+if (page < 1 || pageSize < 1)
+{
+    return BadRequest("Page and pageSize must be greater than 0.");
+}
 
-        return Ok(patients);
-    }
+// Build the query for patients.
+var query = _context.Patients
+    .AsNoTracking();
+
+
+
+// Apply sorting based on the requested option.
+// Apply sorting based on the requested option.
+if (sort == "name")
+{
+    query = query.OrderBy(patient => patient.LastName)
+                 .ThenBy(patient => patient.FirstName);
+}
+else if (sort == "city")
+{
+    query = query.OrderBy(patient => patient.City)
+                 .ThenBy(patient => patient.LastName);
+}
+else
+{
+    query = query.OrderBy(patient => patient.LastName)
+                 .ThenBy(patient => patient.FirstName);
+}
+// Filter patients by gender when a value is provided.
+if (!string.IsNullOrWhiteSpace(gender))
+{
+    query = query.Where(patient => patient.Gender == gender);
+}
+// Filter patients by city when a value is provided.
+if (!string.IsNullOrWhiteSpace(city))
+{
+    query = query.Where(patient => patient.City == city);
+}
+// Count the total number of patients before pagination.
+var totalCount = await query.CountAsync();
+
+// Apply pagination.
+var patients = await query
+    .Skip((page - 1) * pageSize)
+    .Take(pageSize)
+    .Select(patient => new PatientResponse
+    {
+        Id = patient.Id,
+        FirstName = patient.FirstName,
+        LastName = patient.LastName,
+        DateOfBirth = patient.DateOfBirth,
+        Gender = patient.Gender,
+        Phone = patient.Phone,
+        Email = patient.Email,
+        Address = patient.Address,
+        City = patient.City,
+        State = patient.State
+    })
+    .ToListAsync();
+
+
+// Return the patients together with pagination information.
+return Ok(new
+{
+    page,
+    pageSize,
+    totalCount,
+    patients
+});  
+  }
 
     // Returns one patient by ID.
     [HttpGet("{id:guid}")]

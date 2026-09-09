@@ -5,12 +5,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+// Import the service namespace.
+using CardiacPatientMonitoring.Api.Services;
 // Provides access to the global exception middleware.
 using CardiacPatientMonitoring.Api.Middleware;
 using CardiacPatientMonitoring.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-
+// Register the medication order service for dependency injection.
+builder.Services.AddScoped<IMedicationOrderService, MedicationOrderService>();
 // Registers the EF Core database context with SQL Server.
 builder.Services.AddDbContext<CardiacPatientMonitoringDbContext>(options =>
     options.UseSqlServer(
