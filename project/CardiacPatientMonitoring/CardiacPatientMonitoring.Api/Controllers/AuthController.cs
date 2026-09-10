@@ -5,9 +5,10 @@ using CardiacPatientMonitoring.Api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-
+using CardiacPatientMonitoring.Api.Data;
+using CardiacPatientMonitoring.Api.Entities;
+using Microsoft.EntityFrameworkCore;
 namespace CardiacPatientMonitoring.Api.Controllers;
-
 // Handles user registration and login.
 [ApiController]
 [Route("api/[controller]")]
@@ -16,15 +17,17 @@ public class AuthController : ControllerBase
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly IConfiguration _configuration;
-
+    private readonly CardiacPatientMonitoringDbContext _context;
     public AuthController(
-        UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager,
-        IConfiguration configuration)
+       UserManager<IdentityUser> userManager,
+       SignInManager<IdentityUser> signInManager,
+       IConfiguration configuration,
+       CardiacPatientMonitoringDbContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
+        _context = context;
     }
 
     // Registers a new user.
@@ -37,6 +40,8 @@ public class AuthController : ControllerBase
         {
             return Conflict(new { message = "Email is already registered." });
         }
+        // Starts a transaction for creating the Identity user and Patient together.
+        await using var transaction = await _context.Database.BeginTransactionAsync();
 
         var user = new IdentityUser
         {
@@ -54,9 +59,26 @@ public class AuthController : ControllerBase
                 errors = result.Errors.Select(e => e.Description)
             });
         }
+        // Creates the Patient record linked to the new Identity user.
+        var patient = new Patient
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            DateOfBirth = request.DateOfBirth,
+            Gender = request.Gender,
+            Email = request.Email,
+            UserId = user.Id
+        };
 
-        // New users receive the standard User role.
-        await _userManager.AddToRoleAsync(user, "User");
+        _context.Patients.Add(patient);
+        // New users receive the standard Patient role.
+        await _userManager.AddToRoleAsync(user, "Patient");
+
+        // Saves the Patient record to the database.
+        await _context.SaveChangesAsync();
+
+        // Commits the transaction after both records are saved successfully.
+        await transaction.CommitAsync();
 
         return Ok(new
         {
@@ -86,13 +108,22 @@ public class AuthController : ControllerBase
         }
 
         var roles = await _userManager.GetRolesAsync(user);
+        // Finds the Patient linked to the logged-in Identity user.
+        var patient = await _context.Patients
+            .FirstOrDefaultAsync(p => p.UserId == user.Id);
 
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email!),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+
+    };
+        // Adds the Patient ID to the JWT when the user is linked to a Patient.
+        if (patient is not null)
+        {
+            claims.Add(new Claim("patientId", patient.Id.ToString()));
+        }
 
         // Adds the user's roles to the JWT claims.
         claims.AddRange(
