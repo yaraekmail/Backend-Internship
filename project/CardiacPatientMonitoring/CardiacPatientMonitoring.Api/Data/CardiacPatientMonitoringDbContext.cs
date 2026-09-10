@@ -130,5 +130,15 @@ modelBuilder.Entity<MedicationOrder>()
 modelBuilder.Entity<MedicationCatalogItem>()
     .Property(m => m.RowVersion)
     .IsRowVersion();
+
+        // Links a Patient to one Identity user account when an account exists.
+        modelBuilder.Entity<Patient>()
+            .HasOne(p => p.User)
+            .WithOne()
+            .HasForeignKey<Patient>(p => p.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
+
+
+

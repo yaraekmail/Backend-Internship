@@ -9,8 +9,8 @@ public static class IdentitySeeder
     public static async Task SeedRolesAsync(
         RoleManager<IdentityRole> roleManager)
     {
-        // Defines the roles required by the application.
-        string[] roles = { "User", "Admin" };
+        // Creates the Patient and Admin roles if they do not already exist.
+        string[] roles = { "Patient", "Admin" };
 
         foreach (var role in roles)
         {

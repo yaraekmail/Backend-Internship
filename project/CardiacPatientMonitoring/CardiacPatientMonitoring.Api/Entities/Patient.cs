@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 namespace CardiacPatientMonitoring.Api.Entities;
 
 // Represents a patient in the cardiac monitoring system.
@@ -34,6 +35,12 @@ public class Patient
     // Stores the patient's state.
     public string? State { get; set; }
 
+    // Links the patient to an Identity user when an account exists.
+    public string? UserId { get; set; }
+
+    // Navigation property for the linked Identity user.
+    public IdentityUser? User { get; set; }
+
     // Collection of vital-sign measurements recorded for the patient.
     public ICollection<VitalSign> VitalSigns { get; set; } = new List<VitalSign>();
 
@@ -49,3 +56,5 @@ public class Patient
     // Collection of allergies associated with the patient.
     public ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
 }
+
+
