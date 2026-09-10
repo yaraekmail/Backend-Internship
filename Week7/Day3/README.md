@@ -35,7 +35,9 @@ For example, getting all patients is an **Admin-only** endpoint:
 
 ```csharp
 [Authorize(Roles = "Admin")]
+
 [HttpGet]
+
 public async Task<ActionResult<IEnumerable<PatientResponse>>> GetPatients()
 ```
 
@@ -160,7 +162,7 @@ Result:
 
 **403 Forbidden** ✅
 
-Week7/Day3/img/Screenshot 2026-09-10 212534.png
+![Patient accessing GET /api/Patients](./img/Screenshot%202026-09-10%20212534.png)
 
 ---
 
@@ -171,7 +173,8 @@ The Patient token for `patient1@test.com` was used to request another patient's 
 Result:
 
 **403 Forbidden** ✅
-Week7/Day3/img/Day3_Patient_OtherPatient_403.png.png
+
+![Patient accessing another patient's record](./img/Day3_Patient_OtherPatient_403.png.png)
 
 ---
 
@@ -185,7 +188,7 @@ Result:
 
 **403 Forbidden** ✅
 
-Week7/Day3/img/Screenshot 2026-09-10 213730.png
+![Patient accessing GET /api/Appointments](./img/Screenshot%202026-09-10%20213730.png)
 
 ---
 
