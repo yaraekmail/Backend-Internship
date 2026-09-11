@@ -233,7 +233,7 @@ The registration flow worked successfully.
 
 ### Screenshot
 
-![Day 5 Registration Success](./img/Day5_Registration_Success_200OK.png)
+![Day 5 Registration Success](./img/Day5_Registration_Success_200OK.png.png)
 
 ---
 
@@ -286,7 +286,7 @@ The Patient authentication flow worked successfully.
 
 ### Screenshot
 
-![Day 5 Login Success JWT](./img/Day5_Login_Success_JWT.png)
+![Day 5 Login Success JWT](./img/Day5_Login_Success_JWT.png.png)
 
 ---
 
@@ -348,7 +348,7 @@ Sara successfully accessed her own Patient-specific data.
 
 ### Screenshot
 
-![Patient Own Data](./img/Day5_Patient_OwnData_200OK.png)
+![Patient Own Data](./img/Day5_Patient_OwnData_200OK.png.png)
 
 ---
 
@@ -406,7 +406,7 @@ A Patient cannot access another Patient's Patient-specific data.
 
 ### Screenshot
 
-![Patient Other Patient 403](./img/Day5_Patient_OtherPatient_403.png)
+![Patient Other Patient 403](./img/Day5_Patient_OtherPatient_403.png.png)
 
 ---
 
@@ -450,7 +450,7 @@ Role-based authorization successfully prevented a Patient from accessing an Admi
 
 ### Screenshot
 
-![Patient Admin Endpoint 403](./img/Day5_Patient_AdminEndpoint_403.png)
+![Patient Admin Endpoint 403](./img/Day5_Patient_AdminEndpoint_403.png.png)
 
 ---
 
@@ -499,7 +499,7 @@ The authorization system correctly distinguishes between Patient and Admin users
 
 ### Screenshot
 
-![Admin Admin Endpoint 200](./img/Day5_Admin_AdminEndpoint_200OK.png)
+![Admin Admin Endpoint 200](./img/Day5_Admin_AdminEndpoint_200OK.png.png)
 
 ---
 
@@ -525,11 +525,11 @@ Before creating the order, the medication catalog was checked.
 
 Example catalog entries:
 
-| ID | Medication         | Unit Price | Stock |
-| -: | ------------------ | ---------: | ----: |
-|  1 | Aspirin 81 mg      |      10.00 |     8 |
-|  2 | Atorvastatin 20 mg |      25.50 |     5 |
-|  3 | Metoprolol 25 mg   |       7.75 |     1 |
+|  ID | Medication         | Unit Price | Stock |
+| --: | ------------------ | ---------: | ----: |
+|   1 | Aspirin 81 mg      |      10.00 |     8 |
+|   2 | Atorvastatin 20 mg |      25.50 |     5 |
+|   3 | Metoprolol 25 mg   |       7.75 |     1 |
 
 Medication catalog item `1` was used.
 
@@ -590,7 +590,7 @@ Sara successfully created a medication order for herself.
 
 ### Screenshot
 
-![Patient Creates Own Order](./img/Day5_Patient_CreateOwnOrder_200OK.png)
+![Patient Creates Own Order](./img/Day5_Patient_CreateOwnOrder_200OK.png.png)
 
 ---
 
@@ -656,7 +656,7 @@ The ownership check successfully prevented Sara from creating a medication order
 
 ### Screenshot
 
-![Patient Other Patient Order 403](./img/Day5_Patient_OtherPatient_Order_403.png)
+![Patient Other Patient Order 403](./img/Day5_Patient_OtherPatient_Order_403.png.png)
 
 ---
 
@@ -673,10 +673,10 @@ The middleware generates a unique correlation ID for each request.
 
 It also records:
 
-* HTTP method
-* Request path
-* Response status code
-* Execution time
+- HTTP method
+- Request path
+- Response status code
+- Execution time
 
 The response contains:
 
@@ -742,20 +742,20 @@ During the final review, the `VitalSignsController` was found to be missing seve
 
 The missing checks affected operations such as:
 
-* Getting all vital signs
-* Getting a specific vital sign
-* Getting vital signs by Patient ID
-* Creating a vital sign
-* Updating a vital sign
+- Getting all vital signs
+- Getting a specific vital sign
+- Getting vital signs by Patient ID
+- Creating a vital sign
+- Updating a vital sign
 
 The controller was corrected before completing Sprint 2.
 
 The final authorization behavior follows the Sprint 2 model:
 
-* Admin can access permitted resources.
-* Patient can access their own resources.
-* Patient cannot access another Patient's resources.
-* Admin-only operations remain protected.
+- Admin can access permitted resources.
+- Patient can access their own resources.
+- Patient cannot access another Patient's resources.
+- Admin-only operations remain protected.
 
 This issue was fixed as part of Sprint 2 because RBAC and resource ownership were required Sprint 2 objectives.
 
@@ -793,25 +793,25 @@ Swagger was available for the final API tests.
 
 The following Sprint 2 work was completed:
 
-* ASP.NET Core Identity integrated with the capstone database.
-* Patient entity linked to Identity user.
-* Patient registration implemented.
-* Patient login implemented.
-* JWT authentication implemented.
-* Patient ID included in JWT claims.
-* Patient and Admin roles implemented.
-* Public registration assigns the Patient role.
-* Admin account seeded separately.
-* Role-based authorization implemented.
-* Resource-based ownership checks implemented.
-* Patient-to-Patient access restrictions tested.
-* Admin-only endpoint restrictions tested.
-* Patient medication-order ownership tested.
-* Custom request-tracking middleware implemented.
-* Correlation IDs added to responses.
-* Request timing and logging implemented.
-* Authorization issue in `VitalSignsController` identified and corrected.
-* Final build verified successfully.
+- ASP.NET Core Identity integrated with the capstone database.
+- Patient entity linked to Identity user.
+- Patient registration implemented.
+- Patient login implemented.
+- JWT authentication implemented.
+- Patient ID included in JWT claims.
+- Patient and Admin roles implemented.
+- Public registration assigns the Patient role.
+- Admin account seeded separately.
+- Role-based authorization implemented.
+- Resource-based ownership checks implemented.
+- Patient-to-Patient access restrictions tested.
+- Admin-only endpoint restrictions tested.
+- Patient medication-order ownership tested.
+- Custom request-tracking middleware implemented.
+- Correlation IDs added to responses.
+- Request timing and logging implemented.
+- Authorization issue in `VitalSignsController` identified and corrected.
+- Final build verified successfully.
 
 ---
 
