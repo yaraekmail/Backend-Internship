@@ -93,15 +93,6 @@ This demonstrates that the optimized approach does not increase the number of da
 
 The two tests used different data counts because the database contents changed between the tests. The results are therefore documented separately based on the actual data observed during each test.
 
-## Evidence
-
-The following evidence was captured:
-
-- EF Core SQL logging configuration screenshot.
-- Swagger screenshot showing the experimental N+1 endpoint returning `200 OK`.
-- Swagger screenshot showing the optimized endpoint returning `200 OK`.
-- EF Core terminal logs were used to verify the actual SQL query behavior during both tests.
-
 ## Day 1 Outcome
 
 Day 1 successfully identified and demonstrated the N+1 query problem.
@@ -110,7 +101,7 @@ The existing production endpoints were checked first and did not contain an N+1 
 
 An optimized version was implemented and tested, reducing the database access pattern from one query per Patient to two total queries for the tested scenario.
 
-The measured results will be used to guide the next performance improvements in Sprint 3.
+The measured results were used to guide the next performance improvements in Sprint 3.
 
 ## Day 2 — Query Optimization with Eager Loading & Projection
 
@@ -171,29 +162,171 @@ Projection was also implemented as an alternative approach. It also executed **1
 
 The results were measured using EF Core SQL logging rather than being assumed from the LINQ code.
 
-## Day 2 Evidence
+## Day 3 — Introducing Redis Caching
 
-The following evidence was captured:
+### 1. Redis Setup and IDistributedCache
 
-- Swagger screenshot showing the Eager Loading endpoint returning `200 OK`.
-- Swagger screenshot showing the Projection endpoint returning `200 OK`.
-- EF Core SQL logs were used to verify that both approaches executed one database query.
+A managed Redis instance was configured using Upstash Redis because the project environment did not use a local Docker Redis instance.
+
+ASP.NET Core's `IDistributedCache` abstraction was registered using the StackExchange.Redis-backed implementation:
+
+```csharp
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
+```
+
+The Redis connection string was stored using ASP.NET Core User Secrets rather than being added directly to the project configuration files.
+
+### 2. Cache Candidate
+
+The existing `MedicationCatalogItem` entity was used as the catalog data for caching.
+
+The medication catalog is an appropriate cache candidate because it is primarily read-oriented data that does not need to be queried from SQL Server on every request.
+
+The cache key used for the catalog list is:
+
+`medication-catalog:all`
+
+### 3. Cache-Aside Implementation
+
+The catalog list endpoint was implemented using the cache-aside pattern:
+
+`GET /api/MedicationCatalog`
+
+The endpoint first checks Redis for the cached catalog.
+
+If the cache contains the catalog, the cached data is returned directly.
+
+If the cache does not contain the catalog, the endpoint loads the catalog from SQL Server, stores the result in Redis, and returns the data.
+
+The cached catalog uses an absolute expiration time of **10 minutes**.
+
+### 4. Cache Miss and Cache Hit Measurement
+
+The cache behavior was tested using the actual request timing logs produced by the application's request tracking middleware.
+
+The first catalog request was a cache miss and required a SQL query:
+
+* Cache miss: **864 ms**
+
+Subsequent catalog requests were cache hits and did not generate a catalog SQL query:
+
+* Cache hit: **83 ms**
+* Cache hit: **64 ms**
+* Cache hit: **63 ms**
+
+These measurements demonstrate a significant reduction in observed request time for the tested cache-hit requests.
+
+The measurements are based on actual requests and should be treated as observed test results rather than guaranteed response times for all environments.
+
+### 5. Cache Invalidation on Update
+
+The catalog update operation:
+
+`PUT /api/MedicationCatalog/{id}`
+
+was implemented to remove the cached catalog after a successful database update.
+
+The test updated the Aspirin catalog item price from `10` to `12`.
+
+The update returned `200 OK`.
+
+The following GET request returned the updated price and generated a new SQL query, demonstrating that the previous cached catalog had been invalidated.
+
+The GET request after the update completed in **149 ms**.
+
+### 6. Cache Invalidation on Create
+
+The catalog create operation:
+
+`POST /api/MedicationCatalog`
+
+was implemented to remove the cached catalog after a successful database insert.
+
+A new medication catalog item was created:
+
+`Ibuprofen 200 mg`
+
+The create operation returned `201 Created`.
+
+A subsequent GET request returned the newly created item, confirming that the catalog data was refreshed after cache invalidation.
+
+The GET request after the create operation generated a new SQL query and completed in **139 ms**.
+
+### 7. Cache Invalidation on Delete
+
+The catalog delete operation:
+
+`DELETE /api/MedicationCatalog/{id}`
+
+was implemented to remove the cached catalog after a successful database delete.
+
+The test deleted the `Ibuprofen 200 mg` catalog item with ID `4`.
+
+The delete operation returned `204 No Content`.
+
+A subsequent GET request generated a new SQL query and returned `200 OK` without the deleted medication.
+
+The GET request after the delete operation completed in **127 ms**.
+
+This confirmed that the cache was invalidated after deletion and that the catalog was refreshed from SQL Server.
+
+### 8. Day 3 Cache Comparison
+
+| Scenario                      | Database Query             | Observed Time |
+| ----------------------------- | -------------------------- | ------------: |
+| Initial cache miss            | Catalog SQL query executed |        864 ms |
+| Cache hit                     | No catalog SQL query       |         83 ms |
+| Cache hit                     | No catalog SQL query       |         64 ms |
+| Cache hit                     | No catalog SQL query       |         63 ms |
+| GET after Update invalidation | Catalog SQL query executed |        149 ms |
+| GET after Create invalidation | Catalog SQL query executed |        139 ms |
+| GET after Delete invalidation | Catalog SQL query executed |        127 ms |
+
+The response times above are the actual measurements recorded during the Day 3 tests. They may vary depending on database, Redis, network, and local machine conditions.
+
+### 9. Day 3 Outcome
+
+Day 3 successfully introduced Redis caching using ASP.NET Core's `IDistributedCache` abstraction.
+
+The Medication Catalog list endpoint was converted to the cache-aside pattern with a 10-minute expiration.
+
+Cache invalidation was implemented for all three catalog write operations:
+
+* Create
+* Update
+* Delete
+
+The tests confirmed that cache hits avoided the catalog SQL query and that each write operation caused the next catalog GET to reload the data from SQL Server.
+
+The measured results provide evidence of the cache behavior and the importance of invalidating cached data after writes.
 
 ## Sprint 3 Backlog
 
-Based on the Day 1 and Day 2 investigation:
+Based on the Day 1, Day 2, and Day 3 work:
 
-- Continue reviewing important endpoints for inefficient database access patterns.
-- Measure query behavior before and after performance changes.
-- Avoid loading related data through database queries inside loops.
-- Use eager loading with `Include` when related entity data is genuinely required.
-- Use projection for list and summary endpoints when only selected fields are required.
-- Apply `AsSplitQuery` when an endpoint requires multiple collection `Include` operations and split queries are appropriate.
-- Continue using EF Core logging when investigating database performance.
-- Review additional endpoints for possible performance improvements as Sprint 3 continues.
+* Continue reviewing important endpoints for inefficient database access patterns.
+* Measure query behavior before and after performance changes.
+* Avoid loading related data through database queries inside loops.
+* Use eager loading with `Include` when related entity data is genuinely required.
+* Use projection for list and summary endpoints when only selected fields are required.
+* Apply `AsSplitQuery` when an endpoint requires multiple collection `Include` operations and split queries are appropriate.
+* Continue using EF Core logging when investigating database performance.
+* Identify suitable read-heavy, relatively stable data that can benefit from caching.
+* Use `IDistributedCache` for application-level distributed caching where appropriate.
+* Apply the cache-aside pattern for suitable catalog or reference-data endpoints.
+* Ensure every write operation affecting cached data performs explicit cache invalidation.
+* Measure cache miss and cache hit behavior using actual application request timings.
+* Review additional endpoints for possible database and caching performance improvements as Sprint 3 continues.
 
-## Important Note
+## Important Notes
 
 The N+1 endpoint was intentionally created as an experimental learning endpoint to demonstrate the problem after the existing endpoints were tested and no genuine N+1 issue was found.
 
+The Redis cache was implemented using a managed Redis instance through Upstash rather than a local Docker Redis instance.
+
 All documented query counts and performance findings are based on actual testing and EF Core logs.
+
+All documented cache timing results are based on the actual request timing measurements recorded during the Day 3 tests.
