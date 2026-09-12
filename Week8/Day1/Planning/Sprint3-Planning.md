@@ -112,20 +112,84 @@ An optimized version was implemented and tested, reducing the database access pa
 
 The measured results will be used to guide the next performance improvements in Sprint 3.
 
+## Day 2 — Query Optimization with Eager Loading & Projection
+
+### 1. Eager Loading with Include
+
+The Day 1 Patient-Medication N+1 pattern was optimized using Entity Framework Core eager loading.
+
+The endpoint:
+
+`GET /api/Patients/eager-loading`
+
+uses:
+
+```csharp
+.Include(patient => patient.Medications)
+```
+
+The endpoint was tested successfully through Swagger and returned `200 OK`.
+
+EF Core SQL logging confirmed that the endpoint executed **1 database query**. The generated SQL used a `LEFT JOIN` between Patients and Medications.
+
+### 2. Projection
+
+A projection-based endpoint was implemented:
+
+`GET /api/Patients/projection`
+
+The endpoint uses `Select` to return only the Patient and Medication fields required by the API response.
+
+The endpoint was tested successfully through Swagger and returned `200 OK`.
+
+EF Core SQL logging confirmed that the endpoint executed **1 database query**. The generated SQL selected only the required fields rather than loading all entity columns.
+
+### 3. Query Count Comparison
+
+| Approach                 | Query Count | Result                                                      |
+| ------------------------ | ----------: | ----------------------------------------------------------- |
+| Day 1 N+1                |          52 | 1 Patients query + 51 Medication queries                    |
+| Day 1 Optimized Batching |           2 | 1 Patients query + 1 Medication query                       |
+| Day 2 Include            |           1 | Patients and Medications loaded using one `LEFT JOIN` query |
+| Day 2 Projection         |           1 | Required fields loaded using one query                      |
+
+The Day 2 results were verified using the actual EF Core SQL logs.
+
+### 4. AsSplitQuery
+
+`AsSplitQuery` was not applied during Day 2 because the current project does not contain an endpoint that eagerly loads two or more collection navigation properties.
+
+Therefore, there was no current scenario involving multiple collection `Include` operations that required split queries to avoid cartesian explosion.
+
+### 5. Day 2 Outcome
+
+Day 2 successfully applied eager loading with `Include` to the Patient-Medication access pattern demonstrated during Day 1.
+
+The query count was reduced from the 52-query N+1 pattern to **1 database query** for the eager-loading endpoint.
+
+Projection was also implemented as an alternative approach. It also executed **1 database query** while selecting only the fields required by the API response.
+
+The results were measured using EF Core SQL logging rather than being assumed from the LINQ code.
+
+## Day 2 Evidence
+
+The following evidence was captured:
+
+- Swagger screenshot showing the Eager Loading endpoint returning `200 OK`.
+- Swagger screenshot showing the Projection endpoint returning `200 OK`.
+- EF Core SQL logs were used to verify that both approaches executed one database query.
+
 ## Sprint 3 Backlog
 
-Based on the Day 1 investigation:
-
-- Replace the confirmed N+1 Patient-Medication access pattern with the optimized batched approach so that related Medications are loaded without a separate database query for each Patient.
+Based on the Day 1 and Day 2 investigation:
 
 - Continue reviewing important endpoints for inefficient database access patterns.
-
 - Measure query behavior before and after performance changes.
-
 - Avoid loading related data through database queries inside loops.
-
+- Use eager loading with `Include` when related entity data is genuinely required.
+- Use projection for list and summary endpoints when only selected fields are required.
+- Apply `AsSplitQuery` when an endpoint requires multiple collection `Include` operations and split queries are appropriate.
 - Continue using EF Core logging when investigating database performance.
-
 - Review additional endpoints for possible performance improvements as Sprint 3 continues.
 
 ## Important Note
