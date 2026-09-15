@@ -24,22 +24,6 @@ public class MedicationOrdersController : ControllerBase
     public async Task<ActionResult<MedicationOrderResponse>> CreateOrder(
         CreateMedicationOrderRequest request)
     {
-        // Allow Admin users to create orders for any patient.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            if (currentPatientId != request.PatientId)
-            {
-                return Forbid();
-            }
-        }
-
         try
         {
             // Create the order using the business logic in the service.

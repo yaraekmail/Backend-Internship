@@ -30,7 +30,6 @@ public class MedicationsController : ControllerBase
     }
 
     // Returns all medications.
-    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<MedicationResponse>>> GetMedications()
     {
@@ -54,34 +53,7 @@ public class MedicationsController : ControllerBase
     // Returns one medication by ID.
     [HttpGet("{id:int}")]
     public async Task<ActionResult<MedicationResponse>> GetMedication(int id)
-    {// Allow Admin users to access any medication.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            var medicationPatientId = await _context.Medications
-                .Where(medication => medication.Id == id)
-                .Select(medication => (Guid?)medication.PatientId)
-                .FirstOrDefaultAsync();
-
-            if (medicationPatientId is null)
-            {
-                return NotFound(new
-                {
-                    message = "Medication not found."
-                });
-            }
-
-            if (medicationPatientId != currentPatientId)
-            {
-                return Forbid();
-            }
-        }
+    {
         var medication = await _context.Medications
             .AsNoTracking()
             .Where(medication => medication.Id == id)
@@ -112,21 +84,7 @@ public class MedicationsController : ControllerBase
     [HttpGet("patient/{patientId:guid}")]
     public async Task<ActionResult<IEnumerable<MedicationResponse>>> GetPatientMedications(
         Guid patientId)
-    {// Allow Admin users to access medications for any patient.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            if (currentPatientId != patientId)
-            {
-                return Forbid();
-            }
-        }
+    {
         var patientExists = await _context.Patients
             .AnyAsync(patient => patient.Id == patientId);
 
@@ -162,21 +120,6 @@ public class MedicationsController : ControllerBase
     public async Task<ActionResult<MedicationResponse>> CreateMedication(
         CreateMedicationRequest request)
     {
-        // Allow Admin users to create medications for any patient.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            if (currentPatientId != request.PatientId)
-            {
-                return Forbid();
-            }
-        }
         // Validates the incoming create request.
         var validationResult = await _createMedicationValidator.ValidateAsync(request);
 
@@ -234,35 +177,6 @@ public class MedicationsController : ControllerBase
         int id,
         UpdateMedicationRequest request)
     {
-        // Allow Admin users to update any medication.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            var medicationPatientId = await _context.Medications
-                .Where(medication => medication.Id == id)
-                .Select(medication => (Guid?)medication.PatientId)
-                .FirstOrDefaultAsync();
-
-            if (medicationPatientId is null)
-            {
-                return NotFound(new
-                {
-                    message = "Medication not found."
-                });
-            }
-
-            if (medicationPatientId != currentPatientId)
-            {
-                return Forbid();
-            }
-        }
-
         // Validates the incoming update request.
         var validationResult = await _updateMedicationValidator.ValidateAsync(request);
 

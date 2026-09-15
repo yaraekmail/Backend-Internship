@@ -78,7 +78,7 @@ namespace CardiacPatientMonitoring.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PatientId", "AppointmentDate");
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Appointments");
                 });
@@ -142,7 +142,7 @@ namespace CardiacPatientMonitoring.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PatientId", "StartDate");
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Medications");
                 });
@@ -320,7 +320,7 @@ namespace CardiacPatientMonitoring.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PatientId", "RecordedAt");
+                    b.HasIndex("PatientId");
 
                     b.ToTable("VitalSigns");
                 });

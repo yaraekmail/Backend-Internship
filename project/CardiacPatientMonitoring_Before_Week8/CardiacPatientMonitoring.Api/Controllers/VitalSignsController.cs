@@ -1,11 +1,10 @@
 using CardiacPatientMonitoring.Api.Data;
 using CardiacPatientMonitoring.Api.DTOs;
 using CardiacPatientMonitoring.Api.Entities;
-using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using FluentValidation;
 namespace CardiacPatientMonitoring.Api.Controllers;
 
 // Handles CRUD operations for vital-sign measurements.
@@ -15,14 +14,13 @@ namespace CardiacPatientMonitoring.Api.Controllers;
 public class VitalSignsController : ControllerBase
 {
     private readonly CardiacPatientMonitoringDbContext _context;
-    private readonly IValidator<CreateVitalSignRequest> _createVitalSignValidator;
-    private readonly IValidator<UpdateVitalSignRequest> _updateVitalSignValidator;
-
+private readonly IValidator<CreateVitalSignRequest> _createVitalSignValidator;
+private readonly IValidator<UpdateVitalSignRequest> _updateVitalSignValidator;
     // Receives the database context and validators through dependency injection.
-    public VitalSignsController(
-        CardiacPatientMonitoringDbContext context,
-        IValidator<CreateVitalSignRequest> createVitalSignValidator,
-        IValidator<UpdateVitalSignRequest> updateVitalSignValidator)
+    public VitalSignsController
+    (CardiacPatientMonitoringDbContext context,
+     IValidator<CreateVitalSignRequest> createVitalSignValidator,
+     IValidator<UpdateVitalSignRequest> updateVitalSignValidator)
     {
         _context = context;
         _createVitalSignValidator = createVitalSignValidator;
@@ -31,7 +29,6 @@ public class VitalSignsController : ControllerBase
 
     // Returns all vital-sign measurements.
     [HttpGet]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<VitalSignResponse>>> GetVitalSigns()
     {
         var vitalSigns = await _context.VitalSigns
@@ -82,23 +79,6 @@ public class VitalSignsController : ControllerBase
             });
         }
 
-        // Allow Admin users to access any vital sign.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            // Allow Patient users to access only their own vital signs.
-            if (vitalSign.PatientId != currentPatientId)
-            {
-                return Forbid();
-            }
-        }
-
         return Ok(vitalSign);
     }
 
@@ -107,23 +87,6 @@ public class VitalSignsController : ControllerBase
     public async Task<ActionResult<IEnumerable<VitalSignResponse>>> GetPatientVitalSigns(
         Guid patientId)
     {
-        // Allow Admin users to access vital signs for any patient.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            // Allow Patient users to access only their own vital signs.
-            if (currentPatientId != patientId)
-            {
-                return Forbid();
-            }
-        }
-
         var patientExists = await _context.Patients
             .AnyAsync(patient => patient.Id == patientId);
 
@@ -160,32 +123,13 @@ public class VitalSignsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<VitalSignResponse>> CreateVitalSign(
         CreateVitalSignRequest request)
-    {
-        // Allow Admin users to create vital signs for any patient.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            // Allow Patient users to create vital signs only for themselves.
-            if (currentPatientId != request.PatientId)
-            {
-                return Forbid();
-            }
-        }
-
-        // Validates the incoming create request.
+    {  // Validates the incoming create request.
         var validationResult = await _createVitalSignValidator.ValidateAsync(request);
 
-        if (!validationResult.IsValid)
-        {
-            return BadRequest(validationResult.Errors);
-        }
-
+if (!validationResult.IsValid)
+{
+    return BadRequest(validationResult.Errors);
+}
         var patientExists = await _context.Patients
             .AnyAsync(patient => patient.Id == request.PatientId);
 
@@ -238,6 +182,13 @@ public class VitalSignsController : ControllerBase
         int id,
         UpdateVitalSignRequest request)
     {
+            // Validates the incoming update request.
+    var validationResult = await _updateVitalSignValidator.ValidateAsync(request);
+
+    if (!validationResult.IsValid)
+    {
+        return BadRequest(validationResult.Errors);
+    }
         var vitalSign = await _context.VitalSigns
             .FirstOrDefaultAsync(vitalSign => vitalSign.Id == id);
 
@@ -247,31 +198,6 @@ public class VitalSignsController : ControllerBase
             {
                 message = "Vital sign not found."
             });
-        }
-
-        // Allow Admin users to update any vital sign.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            // Allow Patient users to update only their own vital signs.
-            if (vitalSign.PatientId != currentPatientId)
-            {
-                return Forbid();
-            }
-        }
-
-        // Validates the incoming update request.
-        var validationResult = await _updateVitalSignValidator.ValidateAsync(request);
-
-        if (!validationResult.IsValid)
-        {
-            return BadRequest(validationResult.Errors);
         }
 
         vitalSign.RecordedAt = request.RecordedAt;

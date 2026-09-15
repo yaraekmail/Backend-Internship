@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
-
 namespace CardiacPatientMonitoring.Api.Controllers;
 
 // Handles CRUD operations for appointments.
@@ -15,9 +14,8 @@ namespace CardiacPatientMonitoring.Api.Controllers;
 public class AppointmentsController : ControllerBase
 {
     private readonly CardiacPatientMonitoringDbContext _context;
-    private readonly IValidator<CreateAppointmentRequest> _createAppointmentValidator;
-    private readonly IValidator<UpdateAppointmentRequest> _updateAppointmentValidator;
-
+private readonly IValidator<CreateAppointmentRequest> _createAppointmentValidator;
+private readonly IValidator<UpdateAppointmentRequest> _updateAppointmentValidator;
     // Receives the database context and validators through dependency injection.
     public AppointmentsController(
         CardiacPatientMonitoringDbContext context,
@@ -30,7 +28,6 @@ public class AppointmentsController : ControllerBase
     }
 
     // Returns all appointments.
-    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AppointmentResponse>>> GetAppointments()
     {
@@ -55,36 +52,6 @@ public class AppointmentsController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<AppointmentResponse>> GetAppointment(int id)
     {
-        // Allow Admin users to access any appointment.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            // Check that the appointment belongs to the current patient.
-            var appointmentPatientId = await _context.Appointments
-                .Where(appointment => appointment.Id == id)
-                .Select(appointment => (Guid?)appointment.PatientId)
-                .FirstOrDefaultAsync();
-
-            if (appointmentPatientId is null)
-            {
-                return NotFound(new
-                {
-                    message = "Appointment not found."
-                });
-            }
-
-            if (appointmentPatientId != currentPatientId)
-            {
-                return Forbid();
-            }
-        }
-
         var appointment = await _context.Appointments
             .AsNoTracking()
             .Where(appointment => appointment.Id == id)
@@ -113,26 +80,10 @@ public class AppointmentsController : ControllerBase
     // Returns all appointments for a specific patient.
     [HttpGet("patient/{patientId:guid}")]
     public async Task<ActionResult<IEnumerable<AppointmentResponse>>> GetPatientAppointments(
-     Guid patientId)
+        Guid patientId)
     {
-        // Allow Admin users to access appointments for any patient.
-        if (!User.IsInRole("Admin"))
-        {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            if (currentPatientId != patientId)
-            {
-                return Forbid();
-            }
-        }
-
         var patientExists = await _context.Patients
-             .AnyAsync(patient => patient.Id == patientId);
+            .AnyAsync(patient => patient.Id == patientId);
 
         if (!patientExists)
         {
@@ -160,45 +111,30 @@ public class AppointmentsController : ControllerBase
         return Ok(appointments);
     }
 
-    // Creates a new appointment.
-    [HttpPost]
-    public async Task<ActionResult<AppointmentResponse>> CreateAppointment(
-        CreateAppointmentRequest request)
-    {// Allow Admin users to create appointments for any patient.
-        if (!User.IsInRole("Admin"))
+  // Creates a new appointment.
+[HttpPost]
+public async Task<ActionResult<AppointmentResponse>> CreateAppointment(
+    CreateAppointmentRequest request)
+{
+    // Validates the incoming create request.
+    var validationResult = await _createAppointmentValidator.ValidateAsync(request);
+
+    if (!validationResult.IsValid)
+    {
+        return BadRequest(validationResult.Errors);
+    }
+
+    // Checks whether the patient exists.
+    var patientExists = await _context.Patients
+        .AnyAsync(patient => patient.Id == request.PatientId);
+
+    if (!patientExists)
+    {
+        return NotFound(new
         {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            if (currentPatientId != request.PatientId)
-            {
-                return Forbid();
-            }
-        }
-        // Validates the incoming create request.
-        var validationResult = await _createAppointmentValidator.ValidateAsync(request);
-
-        if (!validationResult.IsValid)
-        {
-            return BadRequest(validationResult.Errors);
-        }
-
-        // Checks whether the patient exists.
-        var patientExists = await _context.Patients
-            .AnyAsync(patient => patient.Id == request.PatientId);
-
-        if (!patientExists)
-        {
-            return NotFound(new
-            {
-                message = "Patient not found."
-            });
-        }
-
+            message = "Patient not found."
+        });
+    }
         var appointment = new Appointment
         {
             PatientId = request.PatientId,
@@ -227,58 +163,30 @@ public class AppointmentsController : ControllerBase
             new { id = appointment.Id },
             response);
     }
+// Updates an existing appointment.
+[HttpPut("{id:int}")]
+public async Task<IActionResult> UpdateAppointment(
+    int id,
+    UpdateAppointmentRequest request)
+{
+    // Validates the incoming update request.
+    var validationResult = await _updateAppointmentValidator.ValidateAsync(request);
 
-    // Updates an existing appointment.
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateAppointment(
-        int id,
-        UpdateAppointmentRequest request)
-    {// Allow Admin users to update any appointment.
-        if (!User.IsInRole("Admin"))
+    if (!validationResult.IsValid)
+    {
+        return BadRequest(validationResult.Errors);
+    }
+
+    var appointment = await _context.Appointments
+        .FirstOrDefaultAsync(appointment => appointment.Id == id);
+
+    if (appointment is null)
+    {
+        return NotFound(new
         {
-            var patientIdClaim = User.FindFirst("patientId")?.Value;
-
-            if (!Guid.TryParse(patientIdClaim, out var currentPatientId))
-            {
-                return Forbid();
-            }
-
-            var appointmentPatientId = await _context.Appointments
-                .Where(appointment => appointment.Id == id)
-                .Select(appointment => (Guid?)appointment.PatientId)
-                .FirstOrDefaultAsync();
-
-            if (appointmentPatientId is null)
-            {
-                return NotFound(new
-                {
-                    message = "Appointment not found."
-                });
-            }
-
-            if (appointmentPatientId != currentPatientId)
-            {
-                return Forbid();
-            }
-        }
-        // Validates the incoming update request.
-        var validationResult = await _updateAppointmentValidator.ValidateAsync(request);
-
-        if (!validationResult.IsValid)
-        {
-            return BadRequest(validationResult.Errors);
-        }
-
-        var appointment = await _context.Appointments
-            .FirstOrDefaultAsync(appointment => appointment.Id == id);
-
-        if (appointment is null)
-        {
-            return NotFound(new
-            {
-                message = "Appointment not found."
-            });
-        }
+            message = "Appointment not found."
+        });
+    }
 
         appointment.AppointmentDate = request.AppointmentDate;
         appointment.Reason = request.Reason;

@@ -16,16 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IMedicationOrderService, MedicationOrderService>();
 // Registers the EF Core database context with SQL Server.
 builder.Services.AddDbContext<CardiacPatientMonitoringDbContext>(options =>
-    options
-    .UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"))
-    .LogTo(Console.WriteLine, LogLevel.Information));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Registers Redis as the distributed cache.
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-});
 // Registers ASP.NET Core Identity for user management and authentication.
 builder.Services.AddIdentityCore<IdentityUser>()
     .AddRoles<IdentityRole>()
@@ -134,10 +127,6 @@ if (app.Environment.IsDevelopment())
 
 // Redirects HTTP requests to HTTPS.
 app.UseHttpsRedirection();
-
-// Tracks request correlation IDs and execution time.
-app.UseMiddleware<RequestTrackingMiddleware>();
-
 // Handles unexpected exceptions before they reach the client.
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -158,7 +147,12 @@ using (var scope = app.Services.CreateScope())
     // Seed initial patients and vital-sign data.
     await DbSeeder.SeedAsync(context);
 }
-
+// Test endpoint that deliberately throws an exception.
+// This is temporary and will be removed after testing.
+app.MapGet("/api/test-error", () =>
+{
+    throw new Exception("This is a test exception.");
+});
 app.Run();
 // Makes the Program class accessible to the integration test project.
 public partial class Program

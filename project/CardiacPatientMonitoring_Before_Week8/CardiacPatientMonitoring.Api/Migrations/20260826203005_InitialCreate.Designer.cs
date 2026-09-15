@@ -4,6 +4,7 @@ using CardiacPatientMonitoring.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardiacPatientMonitoring.Api.Migrations
 {
     [DbContext(typeof(CardiacPatientMonitoringDbContext))]
-    partial class CardiacPatientMonitoringDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260826203005_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,7 +81,7 @@ namespace CardiacPatientMonitoring.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PatientId", "AppointmentDate");
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Appointments");
                 });
@@ -142,98 +145,9 @@ namespace CardiacPatientMonitoring.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PatientId", "StartDate");
-
-                    b.ToTable("Medications");
-                });
-
-            modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.MedicationCatalogItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("MedicationCatalogItems");
-                });
-
-            modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.MedicationOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("PatientId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
                     b.HasIndex("PatientId");
 
-                    b.ToTable("MedicationOrders");
-                });
-
-            modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.MedicationOrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("LineTotal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("MedicationCatalogItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MedicationOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MedicationCatalogItemId");
-
-                    b.HasIndex("MedicationOrderId");
-
-                    b.ToTable("MedicationOrderItems");
+                    b.ToTable("Medications");
                 });
 
             modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.Patient", b =>
@@ -272,14 +186,7 @@ namespace CardiacPatientMonitoring.Api.Migrations
                     b.Property<string>("State")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Patients");
                 });
@@ -320,7 +227,7 @@ namespace CardiacPatientMonitoring.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PatientId", "RecordedAt");
+                    b.HasIndex("PatientId");
 
                     b.ToTable("VitalSigns");
                 });
@@ -567,46 +474,6 @@ namespace CardiacPatientMonitoring.Api.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.MedicationOrder", b =>
-                {
-                    b.HasOne("CardiacPatientMonitoring.Api.Entities.Patient", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.MedicationOrderItem", b =>
-                {
-                    b.HasOne("CardiacPatientMonitoring.Api.Entities.MedicationCatalogItem", "MedicationCatalogItem")
-                        .WithMany()
-                        .HasForeignKey("MedicationCatalogItemId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CardiacPatientMonitoring.Api.Entities.MedicationOrder", "MedicationOrder")
-                        .WithMany("Items")
-                        .HasForeignKey("MedicationOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MedicationCatalogItem");
-
-                    b.Navigation("MedicationOrder");
-                });
-
-            modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.Patient", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithOne()
-                        .HasForeignKey("CardiacPatientMonitoring.Api.Entities.Patient", "UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.VitalSign", b =>
                 {
                     b.HasOne("CardiacPatientMonitoring.Api.Entities.Patient", "Patient")
@@ -667,11 +534,6 @@ namespace CardiacPatientMonitoring.Api.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.MedicationOrder", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("CardiacPatientMonitoring.Api.Entities.Patient", b =>
